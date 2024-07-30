@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:shopping_list/data/categories.dart';
+import 'package:shopping_list/models/category.dart';
 import 'dart:convert';
 import 'package:shopping_list/models/grocery_item.dart';
 import 'package:shopping_list/widgets/new_item.dart';
-
 import 'package:http/http.dart' as http;
 
 class GroceryList extends StatefulWidget {
@@ -13,7 +14,7 @@ class GroceryList extends StatefulWidget {
 }
 
 class _GroceryListState extends State<GroceryList> {
-  final List<GroceryItem> _groceryItems = [];
+  List<GroceryItem> _groceryItems = [];
 
   @override
   void initState() {
@@ -25,7 +26,28 @@ class _GroceryListState extends State<GroceryList> {
     final url = Uri.https(
         "flutterone-64509-default-rtdb.firebaseio.com", "shopping-list.json");
     final response = await http.get(url);
-    final listData = json.decode(response.body);
+    final Map<String, dynamic> listData = json.decode(response.body);
+
+    final List<GroceryItem> loadedItems = [];
+    if (listData != null) {
+      for (final item in listData.entries) {
+        final category = categories.entries.firstWhere(
+          (catItem) => catItem.value.title == item.value['category'],
+        ).value;
+        loadedItems.add(
+          GroceryItem(
+            id: item.key,
+            name: item.value['name'],
+            quantity: item.value['quantity'],
+            category: category,
+          ),
+        );
+      }
+    }
+
+    setState(() {
+      _groceryItems = loadedItems;
+    });
   }
 
   void _addItem() async {
@@ -34,7 +56,6 @@ class _GroceryListState extends State<GroceryList> {
         builder: (ctx) => const NewItem(),
       ),
     );
-    _loadItems();
 
     if (newItem != null) {
       setState(() {
@@ -43,16 +64,18 @@ class _GroceryListState extends State<GroceryList> {
     }
   }
 
-  void _removeItem(GroceryItem item) {
+  void _removeItem(GroceryItem item) async {
+    final url = Uri.https(
+        "flutterone-64509-default-rtdb.firebaseio.com", "shopping-list/${item.id}.json");
+    await http.delete(url);
+
     setState(() {
       _groceryItems.remove(item);
     });
   }
 
   void _deleteItem(int index) {
-    setState(() {
-      _groceryItems.removeAt(index);
-    });
+    _removeItem(_groceryItems[index]);
   }
 
   @override
