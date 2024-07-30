@@ -1,10 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:shopping_list/data/categories.dart';
 import 'package:shopping_list/models/category.dart';
-import 'dart:convert';
 import 'package:shopping_list/models/grocery_item.dart';
 import 'package:shopping_list/widgets/new_item.dart';
-import 'package:http/http.dart' as http;
 
 class GroceryList extends StatefulWidget {
   const GroceryList({super.key});
@@ -26,7 +26,7 @@ class _GroceryListState extends State<GroceryList> {
     final url = Uri.https(
         "flutterone-64509-default-rtdb.firebaseio.com", "shopping-list.json");
     final response = await http.get(url);
-    final Map<String, dynamic> listData = json.decode(response.body);
+    final Map<String, dynamic>? listData = json.decode(response.body);
 
     final List<GroceryItem> loadedItems = [];
     if (listData != null) {
@@ -58,15 +58,36 @@ class _GroceryListState extends State<GroceryList> {
     );
 
     if (newItem != null) {
+      final url = Uri.https(
+          "flutterone-64509-default-rtdb.firebaseio.com", "shopping-list.json");
+      final response = await http.post(
+        url,
+        body: json.encode({
+          'name': newItem.name,
+          'quantity': newItem.quantity,
+          'category': newItem.category.title,
+        }),
+      );
+
+      final Map<String, dynamic> responseData = json.decode(response.body);
+      final id = responseData['name'];
+
       setState(() {
-        _groceryItems.add(newItem);
+        _groceryItems.add(
+          GroceryItem(
+            id: id,
+            name: newItem.name,
+            quantity: newItem.quantity,
+            category: newItem.category,
+          ),
+        );
       });
     }
   }
 
   void _removeItem(GroceryItem item) async {
     final url = Uri.https(
-        "flutterone-64509-default-rtdb.firebaseio.com", "shopping-list/${item.id}.json");
+        "flutterone-64509-default-rtdb.firebaseio.com", "shopping-list.json");
     await http.delete(url);
 
     setState(() {

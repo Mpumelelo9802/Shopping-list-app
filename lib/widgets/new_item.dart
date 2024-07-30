@@ -1,18 +1,14 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shopping_list/data/categories.dart';
 import 'package:shopping_list/models/category.dart';
-import 'package:shopping_list/models/grocery_item.dart';
 
 class NewItem extends StatefulWidget {
   const NewItem({super.key});
 
   @override
-  State<NewItem> createState() {
-    return _NewItemState();
-  }
+  State<NewItem> createState() => _NewItemState();
 }
 
 class _NewItemState extends State<NewItem> {
@@ -26,7 +22,7 @@ class _NewItemState extends State<NewItem> {
       _formKey.currentState!.save();
       final url = Uri.https(
           "flutterone-64509-default-rtdb.firebaseio.com", "shopping-list.json");
-    final response = await http.post(
+      final response = await http.post(
         url,
         headers: {
           "Content-type": "application/json",
@@ -40,9 +36,8 @@ class _NewItemState extends State<NewItem> {
         ),
       );
 
-      if(!context.mounted) {
-        return;
-      }
+      if (!context.mounted) return;
+
       Navigator.of(context).pop();
     }
   }
