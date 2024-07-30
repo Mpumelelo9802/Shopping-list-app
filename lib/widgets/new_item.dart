@@ -26,7 +26,7 @@ class _NewItemState extends State<NewItem> {
       _formKey.currentState!.save();
       final url = Uri.https(
           "flutterone-64509-default-rtdb.firebaseio.com", "shopping-list.json");
-    await http.post(
+    final response = await http.post(
         url,
         headers: {
           "Content-type": "application/json",
@@ -39,12 +39,11 @@ class _NewItemState extends State<NewItem> {
           },
         ),
       );
-      /*Navigator.of(context).pop(GroceryItem(
-          id: DateTime.now().toString(),
-          name: _enteredName,
-          quantity: _enteredQuantity,
-          */
-      // Handle the saved data here
+
+      if(!context.mounted) {
+        return;
+      }
+      Navigator.of(context).pop();
     }
   }
 
